@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SFML 3.0 Project Gallery</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --bg-color: #0b0e14;
+            --card-bg: #161b22;
+            --accent-color: #58a6ff;
+            --border-color: #30363d;
+            --text-main: #c9d1d9;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+
+        .container { max-width: 900px; margin: 0 auto; }
+
+        header { text-align: center; margin-bottom: 50px; }
+        header h1 { color: var(--accent-color); font-size: 2.5rem; }
+
+        /* Accordion Style */
+        .project-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .project-trigger {
+            width: 100%;
+            padding: 20px;
+            background: none;
+            border: none;
+            color: var(--accent-color);
+            font-size: 1.25rem;
+            font-weight: bold;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s;
+        }
+
+        .project-trigger:hover { background: #21262d; }
+
+        .project-trigger::after {
+            content: '▼';
+            font-size: 0.8rem;
+            transition: transform 0.3s;
+        }
+
+        .project-item.active .project-trigger::after {
+            transform: rotate(180deg);
+        }
+
+        .project-content {
+            display: none;
+            padding: 0 20px 20px 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .project-item.active .project-content { display: block; }
+
+        .desc { color: #8b949e; margin-bottom: 15px; font-size: 0.95rem; }
+
+        pre { border-radius: 6px !important; margin: 0 !important; }
+
+        .tag {
+            background: #238636;
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>🏛️ SFML 3.0 Labs Showcase</h1>
+        <p>Студенттерге арналған дайын код шаблондары</p>
+    </header>
+
+    <div class="project-item">
+        <button class="project-trigger">🌃 Cyberpunk Rain <span class="tag">Graphics</span></button>
+        <div class="project-content">
+            <p class="desc">Динамикалық неон жарығы және жерге тигендегі Splash эффектісі.</p>
+            <pre><code class="language-cpp">
+                <script type="text/plain">
+#include <vector>
+#include <optional>
+#include <cmath>
+#include <iostream>
+#include <random>
+
+// SFML 3.0 Modern Headers
+#include <SFML/Graphics.hpp>
+#include <SFML/Window/VideoMode.hpp>
+#include <SFML/Window/Event.hpp>
+#include <SFML/System/Clock.hpp>
+
+// Specific Shape Headers (Required to avoid incomplete type errors)
+#include <SFML/Graphics/CircleShape.hpp>
+#include <SFML/Graphics/RectangleShape.hpp>
+
+struct Drop {
+    sf::Vector2f pos;
+    float speed;
+    float length;
+};
+
+struct NeonSign {
+    sf::FloatRect area;
+    sf::Color color;
+};
+
+struct Splash {
+    sf::Vector2f pos;
+    float radius;
+    float alpha;
+};
+
+int main() {
+    // SFML 3.0 uses sf::Vector2u for VideoMode size
+    sf::RenderWindow window(sf::VideoMode({800, 600}), "Cyberpunk Exhibition 2026");
+    window.setFramerateLimit(60);
+
+    // 1. Initialize Rain Vector
+    std::vector<Drop> rain;
+    for (int i = 0; i < 600; ++i) {
+        rain.push_back({
+            {(float)(rand() % 800), (float)(rand() % 600)}, 
+            (float)(rand() % 8 + 12), // Speed
+            (float)(rand() % 10 + 10)  // Length
+        });
+    }
+
+    // 2. Initialize Ground Splashes
+    std::vector<Splash> splashes;
+
+    // 3. Setup Neon Light Sources
+    // SFML 3.0 Rect initialization: {{x, y}, {width, height}}
+    std::vector<NeonSign> signs;
+    signs.push_back({ {{120.f, 150.f}, {180.f, 100.f}}, sf::Color(255, 0, 150) }); // Neon Pink
+    signs.push_back({ {{500.f, 100.f}, {150.f, 250.f}}, sf::Color(0, 255, 255) }); // Cyber Cyan
+
+    sf::Clock clock;
+
+    while (window.isOpen()) {
+        // SFML 3.0 Event Handling (Uses std::optional)
+        while (const std::optional event = window.pollEvent()) {
+            if (event->is<sf::Event::Closed>()) {
+                window.close();
+            }
+        }
+
+        // --- UPDATE LOGIC ---
+        
+        // Move Rain
+        for (auto& d : rain) {
+            d.pos.y += d.speed;
+            d.pos.x += 0.4f; // Wind factor
+
+            // Ground collision at Y = 580
+            if (d.pos.y > 580.f) {
+                splashes.push_back({ {d.pos.x, 585.f}, 1.0f, 255.f });
+                d.pos.y = -20.f;
+                d.pos.x = (float)(rand() % 800);
+            }
+        }
+
+        // Update Splash Particles
+        for (auto it = splashes.begin(); it != splashes.end();) {
+            it->radius += 0.5f;
+            it->alpha -= 10.0f;
+            if (it->alpha <= 0) it = splashes.erase(it);
+            else ++it;
+        }
+
+        // --- RENDERING ---
+        window.clear(sf::Color(8, 8, 20)); // Deep Midnight
+
+        // Draw Glows (Bloom Effect)
+        for (const auto& sign : signs) {
+            sf::CircleShape glow(180.f);
+            glow.setOrigin({180.f, 180.f});
+            glow.setPosition(sign.area.position + (sign.area.size / 2.f));
+            // Layering low-alpha circles creates the "Neon" look
+            glow.setFillColor(sf::Color(sign.color.r, sign.color.g, sign.color.b, 25));
+            window.draw(glow);
+
+            sf::RectangleShape box(sign.area.size);
+            box.setPosition(sign.area.position);
+            box.setFillColor(sf::Color::Transparent);
+            box.setOutlineThickness(3.f);
+            box.setOutlineColor(sign.color);
+            window.draw(box);
+        }
+
+        // Draw Rain with Dynamic Color Masking
+        for (const auto& d : rain) {
+            sf::Vertex line[2];
+            line[0].position = d.pos;
+            line[1].position = {d.pos.x, d.pos.y + d.length};
+            
+            sf::Color dropColor = sf::Color(120, 120, 255, 100); // Standard Blue
+            
+            // Interaction: Rain changes color when passing through a sign's area
+            for (const auto& sign : signs) {
+                if (sign.area.contains(d.pos)) {
+                    dropColor = sign.color;
+                }
+            }
+
+            line[0].color = dropColor;
+            line[1].color = sf::Color(dropColor.r, dropColor.g, dropColor.b, 20); // Fading tail
+            window.draw(line, 2, sf::PrimitiveType::Lines);
+        }
+
+        // Draw Ground Ripples
+        for (const auto& s : splashes) {
+            sf::CircleShape ripple(s.radius);
+            ripple.setOrigin({s.radius, s.radius});
+            ripple.setPosition(s.pos);
+            ripple.setFillColor(sf::Color::Transparent);
+            ripple.setOutlineThickness(1.2f);
+            ripple.setOutlineColor(sf::Color(150, 150, 255, static_cast<std::uint8_t>(s.alpha)));
+            window.draw(ripple);
+        }
+
+        window.display();
+    }
+
+    return 0;
+}
+</script>
+</code></pre>
+        </div>
+    </div>
+
+    <div class="project-item">
+        <button class="project-trigger">🌌 Black Hole <span class="tag">Physics</span></button>
+        <div class="project-content">
+            <p class="desc">Полярлық координаттарды қолданып жұлдыздардың тартылуын сипаттау.</p>
+            <pre><code class="language-cpp">
+                <script type="text/plain">
+#include <SFML/Graphics.hpp>
+#include <SFML/Window/VideoMode.hpp>
+#include <SFML/Window/Event.hpp>
+#include <vector>
+#include <cmath>
+#include <optional>
+#include <cstdint>
+
+struct Star {
+    sf::Vector2f pos;
+    float angle;
+    float dist;
+    float speed;
+    sf::Color color;
+};
+
+int main() {
+    sf::RenderWindow window(sf::VideoMode({800, 800}), "Black Hole Singularity");
+    window.setFramerateLimit(60);
+
+    sf::Vector2f center(400.f, 400.f);
+    std::vector<Star> stars;
+
+    // 1. Initialize 2000 stars at random distances
+    for (int i = 0; i < 2000; ++i) {
+        stars.push_back({
+            {0, 0}, 
+            (float)(rand() % 360),           // Random angle
+            (float)(rand() % 600 + 50),     // Random distance
+            (float)(rand() % 2 + 1),        // Orbital speed
+            sf::Color::Cyan
+        });
+    }
+
+    while (window.isOpen()) {
+        while (const std::optional event = window.pollEvent()) {
+            if (event->is<sf::Event::Closed>()) window.close();
+        }
+
+        window.clear(sf::Color(0, 0, 5)); // Dark space blue
+
+        // 2. Update and Draw
+        for (auto& s : stars) {
+            // Move toward center (gravity) and rotate (orbit)
+            s.dist -= 0.5f; 
+            s.angle += s.speed / (s.dist * 0.1f); // Faster spin when closer
+
+            if (s.dist < 5.0f) s.dist = 600.f; // Reset star when "sucked in"
+
+            // Convert Polar (dist, angle) to Cartesian (x, y)
+            float rad = s.angle * 3.14159f / 180.f;
+            s.pos.x = center.x + std::cos(rad) * s.dist;
+            s.pos.y = center.y + std::sin(rad) * s.dist;
+
+            // 3. Dynamic Visuals
+            float intensity = std::min(255.f, 1000.f / s.dist); // Brighter near center
+            s.color = sf::Color(
+                (std::uint8_t)intensity, 
+                (std::uint8_t)(intensity * 0.8f), 
+                255
+            );
+
+            // Draw as a point (Vertex)
+            sf::Vertex point;
+            point.position = s.pos;
+            point.color = s.color;
+            window.draw(&point, 1, sf::PrimitiveType::Points);
+        }
+
+        // Draw the Singularity (Black hole core)
+        sf::CircleShape core(30.f);
+        core.setOrigin({30.f, 30.f});
+        core.setPosition(center);
+        core.setFillColor(sf::Color::Black);
+        core.setOutlineThickness(2.f);
+        core.setOutlineColor(sf::Color::White);
+        window.draw(core);
+
+        window.display();
+    }
+    return 0;
+}
+</script>
+            </code></pre>
+        </div>
+    </div>
+
+    <div class="project-item">
+        <button class="project-trigger">🧬 DNA Helix <span class="tag">Math</span></button>
+        <div class="project-content">
+            <p class="desc">Sinus толқындары арқылы жасалған 3D айналмалы спираль.</p>
+            <pre><code class="language-cpp">
+                <script type="text/plain">
+#include <SFML/Graphics.hpp>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <optional>
+
+int main() {
+    // SFML 3.0 стандарты бойынша терезе құру
+    std::string title = "ДНҚ 3D Моделі - SFML 3.0";
+    sf::RenderWindow window(sf::VideoMode({1200, 800}), sf::String::fromUtf8(title.begin(), title.end()));
+    window.setFramerateLimit(60);
+
+    // Қазақша мәтін үшін қаріп (font) жүктеу
+    // Ескерту: Жүйеңізде Arial.ttf немесе басқа қазақ әріптерін қолдайтын қаріп болуы тиіс
+    sf::Font font;
+    if (!font.openFromFile("/System/Library/Fonts/Supplemental/Arial.ttf")) {
+        return -1; 
+    }
+
+    // Сол жақтағы ақпараттық панель (UI Background)
+    sf::RectangleShape infoPanel(sf::Vector2f({400.f, 800.f}));
+    infoPanel.setFillColor(sf::Color(30, 30, 30, 200));
+
+    // Биологиялық ақпарат мәтіні
+    std::string bioInfo = 
+        "ДНҚ Құрылымы:\n"
+        "- Қос шиыршық (Double Helix)\n"
+        "- Азотты негіздер:\n"
+        "  1. Аденин (A)\n"
+        "  2. Тимин (T)\n"
+        "  3. Гуанин (G)\n"
+        "  4. Цитозин (C)\n\n"
+        "Математикалық модель:\n"
+        "x = R * cos(theta + phi)\n"
+        "y = vertical_offset\n"
+        "z = R * sin(theta + phi)\n\n"
+        "3D эффектісі z координатасы\n"
+        "арқылы есептеледі.";
+
+    sf::Text text(font);
+    text.setString(sf::String::fromUtf8(bioInfo.begin(), bioInfo.end()));
+    text.setCharacterSize(18);
+    text.setFillColor(sf::Color::White);
+    text.setPosition({20.f, 20.f});
+
+    float rotation = 0.f;
+    const int numPoints = 40; // Бір спиральдағы нүктелер саны
+    const float PI = 3.14159f;
+
+    while (window.isOpen()) {
+        // SFML 3.0 жаңа Event Loop жүйесі
+        while (std::optional<sf::Event> event = window.pollEvent()) {
+            if (event->is<sf::Event::Closed>()) {
+                window.close();
+            }
+        }
+
+        rotation += 0.02f;
+        window.clear(sf::Color::Black);
+
+        // 1. Ақпараттық панельді салу
+        window.draw(infoPanel);
+        window.draw(text);
+
+        // 2. ДНҚ Спиральдарын салу
+        for (int i = 0; i < numPoints; ++i) {
+            float angle = i * 0.5f + rotation;
+            float yPos = i * 15.f + 100.f;
+
+            // Екі спираль үшін (бірі екіншісінен 180 градусқа ығысқан)
+            for (int j = 0; j < 2; ++j) {
+                float currentAngle = angle + j * PI;
+                
+                // 3D проекциялау (Z осі бойынша)
+                float x = std::cos(currentAngle) * 80.f + 800.f; // Ортасы 800px
+                float z = std::sin(currentAngle); // -1-ден 1-ге дейін
+
+                // Көлемдік эффект (scale) және мөлдірлік (alpha)
+                float size = (z + 1.5f) * 4.f; // Артқы жағы кішірек
+                std::uint8_t alpha = static_cast<std::uint8_t>((z + 1.2f) * 100.f);
+
+                sf::CircleShape point(size);
+                point.setOrigin({size, size});
+                point.setPosition({x, yPos});
+
+                // Түстерді анықтау (1-ші спираль көк, 2-ші қызыл)
+                sf::Color pointColor = (j == 0) ? sf::Color::Cyan : sf::Color::Magenta;
+                pointColor.a = alpha;
+                point.setFillColor(pointColor);
+
+                window.draw(point);
+
+                // Азотты негіздердің байланысын (сызықтарды) салу
+                if (j == 0) {
+                    float x2 = std::cos(currentAngle + PI) * 80.f + 800.f;
+                    sf::Vertex line[2];
+                    
+                    line[0].position = sf::Vector2f({x, yPos});
+                    line[0].color = sf::Color(150, 150, 150, alpha / 2);
+                    
+                    line[1].position = sf::Vector2f({x2, yPos});
+                    line[1].color = sf::Color(150, 150, 150, alpha / 2);
+                    
+                    window.draw(line, 2, sf::PrimitiveType::Lines);
+                }
+            }
+        }
+
+        window.display();
+    }
+
+    return 0;
+}
+</script>
+            </code></pre>
+        </div>
+    </div>
+
+    <div class="project-item">
+        <button class="project-trigger">📟 Matrix  <span class="tag">Effect</span></button>
+        <div class="project-content">
+            <p class="desc">.</p>
+            <pre><code class="language-cpp">
+<script type="text/plain">
+#include <SFML/Graphics.hpp>
+#include <SFML/Window.hpp>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <iostream>
+
+// 4x4 Матрица құрылымы
+struct Matrix4x4 {
+    float m[4][4] = {0};
+};
+
+// 3D нүкте құрылымы
+struct Vec3 {
+    float x, y, z;
+};
+
+// Матрица мен векторды көбейту (Projection & Rotation)
+Vec3 multiplyMatrix(Vec3& i, Matrix4x4& m) {
+    Vec3 v;
+    v.x = i.x * m.m[0][0] + i.y * m.m[1][0] + i.z * m.m[2][0] + m.m[3][0];
+    v.y = i.x * m.m[0][1] + i.y * m.m[1][1] + i.z * m.m[2][1] + m.m[3][1];
+    v.z = i.x * m.m[0][2] + i.y * m.m[1][2] + i.z * m.m[2][2] + m.m[3][2];
+    float w = i.x * m.m[0][3] + i.y * m.m[1][3] + i.z * m.m[2][3] + m.m[3][3];
+
+    if (w != 0.0f) {
+        v.x /= w; v.y /= w; v.z /= w;
+    }
+    return v;
+}
+
+int main() {
+    // Терезе баптаулары
+    std::string titleStr = "3D Matrix Engine - SFML 3.0";
+    sf::RenderWindow window(sf::VideoMode({1000, 800}), sf::String::fromUtf8(titleStr.begin(), titleStr.end()));
+    window.setFramerateLimit(60);
+
+    // Қаріпті жүктеу
+    sf::Font font;
+    if (!font.openFromFile("/System/Library/Fonts/Supplemental/Arial.ttf")) { // macOS жолы
+        return -1;
+    }
+
+    // UI Мәтіні
+    sf::Text uiText(font);
+    uiText.setCharacterSize(14);
+    uiText.setFillColor(sf::Color::White);
+    uiText.setPosition(sf::Vector2f({20.f, 20.f}));
+
+    // Қара-мөлдір панель (UI Background)
+    sf::RectangleShape uiBg(sf::Vector2f({320.f, 300.f}));
+    uiBg.setFillColor(sf::Color(0, 0, 0, 180));
+    uiBg.setPosition(sf::Vector2f({10.f, 10.f}));
+
+    // Куб нүктелері (Unit Cube)
+    std::vector<Vec3> cubePoints = {
+        {0,0,0}, {1,0,0}, {1,1,0}, {0,1,0},
+        {0,0,1}, {1,0,1}, {1,1,1}, {0,1,1}
+    };
+
+    // Қырлары (Edges)
+    std::vector<std::pair<int, int>> edges = {
+        {0,1}, {1,2}, {2,3}, {3,0}, {4,5}, {5,6}, {6,7}, {7,4}, {0,4}, {1,5}, {2,6}, {3,7}
+    };
+
+    float angle = 0;
+    Matrix4x4 matProj;
+    
+    // Проекция матрицасын толтыру (Simple Perspective)
+    float fNear = 0.1f;
+    float fFar = 1000.0f;
+    float fFov = 90.0f;
+    float fAspectRatio = 800.0f / 1000.0f;
+    float fFovRad = 1.0f / tanf(fFov * 0.5f / 180.0f * 3.14159f);
+
+    matProj.m[0][0] = fAspectRatio * fFovRad;
+    matProj.m[1][1] = fFovRad;
+    matProj.m[2][2] = fFar / (fFar - fNear);
+    matProj.m[3][2] = (-fFar * fNear) / (fFar - fNear);
+    matProj.m[2][3] = 1.0f;
+
+    // Негізгі цикл
+    while (window.isOpen()) {
+        while (const std::optional<sf::Event> event = window.pollEvent()) {
+            if (event->is<sf::Event::Closed>())
+                window.close();
+        }
+
+        window.clear(sf::Color(30, 30, 30));
+
+        angle += 0.02f;
+        Matrix4x4 matRotZ, matRotX;
+        
+        // Z-осі бойынша айналу
+        matRotZ.m[0][0] = cosf(angle); matRotZ.m[0][1] = sinf(angle);
+        matRotZ.m[1][0] = -sinf(angle); matRotZ.m[1][1] = cosf(angle);
+        matRotZ.m[2][2] = 1; matRotZ.m[3][3] = 1;
+
+        // X-осі бойынша айналу
+        matRotX.m[0][0] = 1;
+        matRotX.m[1][1] = cosf(angle * 0.5f); matRotX.m[1][2] = sinf(angle * 0.5f);
+        matRotX.m[2][1] = -sinf(angle * 0.5f); matRotX.m[2][2] = cosf(angle * 0.5f);
+        matRotX.m[3][3] = 1;
+
+        std::vector<sf::Vector2f> projectedPoints;
+        for (auto& p : cubePoints) {
+            Vec3 translated = p;
+            translated.x -= 0.5f; translated.y -= 0.5f; translated.z -= 0.5f; // Ортаға келтіру
+
+            Vec3 rotatedZ = multiplyMatrix(translated, matRotZ);
+            Vec3 rotatedZX = multiplyMatrix(rotatedZ, matRotX);
+
+            Vec3 worldPos = rotatedZX;
+            worldPos.z += 3.0f; // Камерадан алыстату
+
+            Vec3 projected = multiplyMatrix(worldPos, matProj);
+
+            // Экран координаттарына көшіру
+            projected.x += 1.0f; projected.y += 1.0f;
+            projected.x *= 0.5f * 1000.0f;
+            projected.y *= 0.5f * 800.0f;
+            projectedPoints.push_back(sf::Vector2f({projected.x, projected.y}));
+        }
+
+        // Қырларын салу
+        for (auto& edge : edges) {
+            sf::Vertex line[2];
+            line[0].position = projectedPoints[edge.first];
+            line[0].color = sf::Color::Cyan;
+            line[1].position = projectedPoints[edge.second];
+            line[1].color = sf::Color::Magenta;
+            window.draw(line, 2, sf::PrimitiveType::Lines);
+        }
+
+        // UI жаңарту
+        std::string infoStr = "Матрицалық айналу формуласы:\n"
+                             "Rz = [cos a, sin a, 0]\n"
+                             "Rx = [1, 0, 0]\n\n"
+                             "Куб координаталары (3D):\n";
+        for(int i=0; i<3; ++i) {
+            infoStr += "P" + std::to_string(i) + ": x=" + std::to_string((int)projectedPoints[i].x) + 
+                       " y=" + std::to_string((int)projectedPoints[i].y) + "\n";
+        }
+        uiText.setString(sf::String::fromUtf8(infoStr.begin(), infoStr.end()));
+
+        window.draw(uiBg);
+        window.draw(uiText);
+        window.display();
+    }
+
+    return 0;
+}
+</script>
+            </code></pre>
+        </div>
+    </div>
+
+    <div class="project-item">
+        <button class="project-trigger">🧠 Neural Network <span class="tag">AI Visual</span></button>
+        <div class="project-content">
+            <p class="desc">Нейрондар мен олардың арасындағы импульс алмасуды визуалдау.</p>
+            <pre><code class="language-cpp">
+                <script type="text/plain">
+#include <SFML/Graphics.hpp>
+#include <vector>
+#include <cmath>
+#include <string>
+#include <optional>
+
+// Қазақ тіліндегі мәтіндерді қатесіз шығару функциясы
+sf::Text createUnicodeText(const std::string& rawStr, const sf::Font& font, unsigned int size, sf::Color color) {
+    sf::Text text(font);
+    // SFML 3.0 талабы бойынша: string -> sf::String (UTF-8)
+    sf::String unicodeStr = sf::String::fromUtf8(rawStr.begin(), rawStr.end());
+    text.setString(unicodeStr);
+    text.setCharacterSize(size);
+    text.setFillColor(color);
+    return text;
+}
+
+int main() {
+    // 1. Терезе құру
+    sf::RenderWindow window(sf::VideoMode({1200, 800}), "Neural Network Visualizer (SFML 3.0)");
+    window.setFramerateLimit(60);
+
+    // 2. Қаріпті жүктеу (Жүйеде Arial.ttf бар екеніне көз жеткізіңіз немесе жолын өзгертіңіз)
+    sf::Font font;
+    if (!font.openFromFile("/System/Library/Fonts/Supplemental/Arial.ttf")) { // macOS үшін стандартты жол
+        return -1; 
+    }
+
+    // 3. Желі құрылымы (Қабаттардағы нейрондар саны)
+    std::vector<int> layers = {4, 6, 2};
+    std::vector<std::vector<sf::Vector2f>> neuronPositions;
+    
+    float xOffset = 300.f;
+    float yOffset = 150.f;
+    float layerSpacing = 300.f;
+    float neuronSpacing = 80.f;
+
+    for (int i = 0; i < layers.size(); ++i) {
+        std::vector<sf::Vector2f> layerPos;
+        for (int j = 0; j < layers[i]; ++j) {
+            float x = xOffset + i * layerSpacing;
+            float y = yOffset + j * neuronSpacing + (400.f - (layers[i] * neuronSpacing) / 2.f);
+            layerPos.push_back(sf::Vector2f({x, y}));
+        }
+        neuronPositions.push_back(layerPos);
+    }
+
+    // 4. UI Панель
+    sf::RectangleShape uiPanel(sf::Vector2f({250.f, 800.f}));
+    uiPanel.setFillColor(sf::Color(30, 30, 30, 200));
+    uiPanel.setPosition(sf::Vector2f({0.f, 0.f}));
+
+    std::string infoStr = "Архитектура: MLP\nҚабаттар: 3\nФункция: Sigmoid, ReLU\nСтатус: Сигнал таралуда...";
+    sf::Text infoText = createUnicodeText(infoStr, font, 18, sf::Color::White);
+    infoText.setPosition(sf::Vector2f({20.f, 50.f}));
+
+    // Сигнал анимациясы үшін айнымалылар
+    float signalProgress = 0.f;
+
+    // 5. Негізгі цикл
+    while (window.isOpen()) {
+        // SFML 3.0: std::optional<sf::Event> қолдану
+        while (const std::optional<sf::Event> event = window.pollEvent()) {
+            if (event->is<sf::Event::Closed>()) {
+                window.close();
+            }
+        }
+
+        // Логика: Сигнал қозғалысы
+        signalProgress += 0.01f;
+        if (signalProgress > 1.0f) signalProgress = 0.f;
+
+        window.clear(sf::Color(15, 15, 25)); // Қара-көк фон
+
+        // --- 1. Байланыстарды салу (Synapses) ---
+        for (size_t l = 0; l < neuronPositions.size() - 1; ++l) {
+            for (const auto& startPos : neuronPositions[l]) {
+                for (const auto& endPos : neuronPositions[l + 1]) {
+                    sf::Vertex line[2];
+                    line[0].position = sf::Vector2f({startPos.x, startPos.y});
+                    line[0].color = sf::Color(100, 100, 100, 150);
+                    line[1].position = sf::Vector2f({endPos.x, endPos.y});
+                    line[1].color = sf::Color(100, 100, 100, 150);
+                    window.draw(line, 2, sf::PrimitiveType::Lines);
+
+                    // Сигнал (кішкентай жарық нүкте)
+                    sf::CircleShape signal(4.f);
+                    signal.setFillColor(sf::Color::Cyan);
+                    float sx = startPos.x + (endPos.x - startPos.x) * signalProgress;
+                    float sy = startPos.y + (endPos.y - startPos.y) * signalProgress;
+                    signal.setOrigin(sf::Vector2f({2.f, 2.f}));
+                    signal.setPosition(sf::Vector2f({sx, sy}));
+                    window.draw(signal);
+                }
+            }
+        }
+
+        // --- 2. Нейрондарды салу ---
+        for (const auto& layer : neuronPositions) {
+            for (const auto& pos : layer) {
+                sf::CircleShape neuron(20.f);
+                neuron.setFillColor(sf::Color(50, 150, 250));
+                neuron.setOutlineThickness(2.f);
+                neuron.setOutlineColor(sf::Color::White);
+                neuron.setOrigin(sf::Vector2f({20.f, 20.f}));
+                neuron.setPosition(sf::Vector2f({pos.x, pos.y}));
+                window.draw(neuron);
+            }
+        }
+
+        // --- 3. UI салу ---
+        window.draw(uiPanel);
+        window.draw(infoText);
+
+        window.display();
+    }
+
+    return 0;
+}
+</script>
+            </code></pre>
+        </div>
+    </div>
+
+    <div class="project-item">
+        <button class="project-trigger">🌀 Lorenz Attractor <span class="tag">Chaos Theory</span></button>
+        <div class="project-content">
+            <p class="desc">Хаос теориясындағы атақты "Көбелек эффектісі" теңдеуі.</p>
+            <pre><code class="language-cpp">
+<script type="text/plain">
+#include <SFML/Graphics.hpp>
+#include <vector>
+#include <string>
+#include <cstdint>
+
+int main() {
+    // 1. Терезе параметрлері
+    sf::VideoMode desktop = sf::VideoMode({1200, 800});
+    std::string titleText = "Лоренц аттракторы: Хаос теориясы";
+    
+    // SFML 3.0 үшін String Literal қатесін болдырмау
+    sf::RenderWindow window(desktop, sf::String::fromUtf8(titleText.begin(), titleText.end()));
+    window.setFramerateLimit(60);
+
+    // 2. Лоренц теңдеуінің тұрақтылары
+    double x = 0.1, y = 0, z = 0;
+    const double sigma = 10.0;
+    const double rho = 28.0;
+    const double beta = 8.0 / 3.0;
+    const double dt = 0.01;
+
+    // 3. Графикалық элементтер
+    sf::VertexArray points(sf::PrimitiveType::LineStrip);
+    sf::Font font;
+    
+    // Қаріпті жүктеу (macOS-та бұл жол қолжетімді болуы тиіс немесе файлды көрсетіңіз)
+    if (!font.openFromFile("/Library/Fonts/Arial Unicode.ttf")) {
+        return -1;
+    }
+
+    // sf::Text инициализациясы (SFML 3.0 ережесі бойынша)
+    sf::Text dashboard(font);
+    dashboard.setCharacterSize(18);
+    dashboard.setFillColor(sf::Color::White);
+    dashboard.setPosition(sf::Vector2f({20.f, 20.f}));
+
+    // Dashboard мәтінін дайындау
+    std::string info = "Лоренц теңдеулері:\ndx/dt = sigma * (y - x)\ndy/dt = x * (rho - z) - y\ndz/dt = x * y - beta * z\n\nХаос теориясы: Жүйенің бастапқы күйіне\nөте сезімталдығын білдіреді.";
+    dashboard.setString(sf::String::fromUtf8(info.begin(), info.end()));
+
+    // Негізгі цикл
+    while (window.isOpen()) {
+        while (const std::optional event = window.pollEvent()) {
+            if (event->is<sf::Event::Closed>()) {
+                window.close();
+            }
+        }
+
+        // 4. Лоренц алгоритмі (RK4 емес, қарапайым Эйлер әдісі)
+        double dx = (sigma * (y - x)) * dt;
+        double dy = (x * (rho - z) - y) * dt;
+        double dz = (x * y - beta * z) * dt;
+        x += dx;
+        y += dy;
+        z += dz;
+
+        // 5. Жаңа нүктені VertexArray-ге қосу
+        sf::Vertex v;
+        // Масштабтау және экран ортасына жылжыту (x*15, y*15, +600, +400)
+        v.position = sf::Vector2f({static_cast<float>(x * 15 + 600), static_cast<float>(y * 15 + 400)});
+        
+        // Түсті динамикалық түрде өзгерту (std::uint8_t қолдану)
+        std::uint8_t colorR = static_cast<std::uint8_t>(std::min(255.0, z * 5));
+        v.color = sf::Color(colorR, 100, 255);
+        
+        points.append(v);
+
+        // Орындау
+        window.clear(sf::Color::Black);
+        window.draw(points);
+        window.draw(dashboard);
+        window.display();
+    }
+
+    return 0;
+}
+</script>
+            </code></pre>
+        </div>
+    </div>
+
+    <div class="project-item">
+        <button class="project-trigger">⏳ Sand Simulator <span class="tag">Cellular Automata</span></button>
+        <div class="project-content">
+            <p class="desc">Құм түйіршіктерінің физикалық құлау заңдылығы (Falling Sand).</p>
+            <pre><code class="language-cpp">
+<script type="text/plain">
+#include <SFML/Graphics.hpp>
+#include <SFML/Window/VideoMode.hpp>
+#include <SFML/Window/Event.hpp>
+#include <vector>
+#include <optional>
+
+// Specific shape includes to fix "Incomplete Type"
+#include <SFML/Graphics/RectangleShape.hpp>
+
+const int WIDTH = 160;   // Grid width
+const int HEIGHT = 120;  // Grid height
+const int SCALE = 5;     // Size of each grain
+
+int main() {
+    // 1. Setup Window (SFML 3.0 Syntax)
+    sf::RenderWindow window(sf::VideoMode({WIDTH * SCALE, HEIGHT * SCALE}), "Physics Sandbox 3.0");
+    window.setFramerateLimit(60);
+
+    // 2. The Grid (Using a flat vector for better performance/reliability)
+    // 0 = Empty, 1+ = Color Index
+    std::vector<int> grid(WIDTH * HEIGHT, 0);
+
+    while (window.isOpen()) {
+        // --- SFML 3.0 Event Loop ---
+        while (const std::optional event = window.pollEvent()) {
+            if (event->is<sf::Event::Closed>()) {
+                window.close();
+            }
+        }
+
+        // --- Interaction: Spawn Sand ---
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+            sf::Vector2i mPos = sf::Mouse::getPosition(window);
+            int gx = mPos.x / SCALE;
+            int gy = mPos.y / SCALE;
+
+            // Simple brush (3x3 area)
+            for (int i = -1; i <= 1; i++) {
+                for (int j = -1; j <= 1; j++) {
+                    int nx = gx + i;
+                    int ny = gy + j;
+                    if (nx >= 0 && nx < WIDTH && ny >= 0 && ny < HEIGHT) {
+                        // Use a number that changes over time for a rainbow effect
+                        if (grid[ny * WIDTH + nx] == 0) {
+                            grid[ny * WIDTH + nx] = (nx + ny) % 255 + 1; 
+                        }
+                    }
+                }
+            }
+        }
+
+        // --- Physics Logic: The Falling Sand Algorithm ---
+        // We create a copy to calculate the next state
+        std::vector<int> nextGrid = grid;
+
+        for (int y = HEIGHT - 2; y >= 0; y--) { // From bottom up
+            for (int x = 0; x < WIDTH; x++) {
+                int currentIdx = y * WIDTH + x;
+                int belowIdx = (y + 1) * WIDTH + x;
+
+                if (grid[currentIdx] > 0) {
+                    // 1. Try Fall Straight Down
+                    if (grid[belowIdx] == 0) {
+                        nextGrid[belowIdx] = grid[currentIdx];
+                        nextGrid[currentIdx] = 0;
+                    }
+                    // 2. Try Fall Diagonally Left
+                    else if (x > 0 && grid[(y + 1) * WIDTH + (x - 1)] == 0) {
+                        nextGrid[(y + 1) * WIDTH + (x - 1)] = grid[currentIdx];
+                        nextGrid[currentIdx] = 0;
+                    }
+                    // 3. Try Fall Diagonally Right
+                    else if (x < WIDTH - 1 && grid[(y + 1) * WIDTH + (x + 1)] == 0) {
+                        nextGrid[(y + 1) * WIDTH + (x + 1)] = grid[currentIdx];
+                        nextGrid[currentIdx] = 0;
+                    }
+                }
+            }
+        }
+        grid = nextGrid;
+
+        // --- Rendering ---
+        window.clear(sf::Color(10, 10, 20));
+
+        sf::RectangleShape grain(sf::Vector2f(SCALE, SCALE));
+        for (int y = 0; y < HEIGHT; y++) {
+            for (int x = 0; x < WIDTH; x++) {
+                int val = grid[y * WIDTH + x];
+                if (val > 0) {
+                    grain.setPosition({(float)x * SCALE, (float)y * SCALE});
+                    
+                    // Fancy Color Logic: Hue Shift based on the value we stored
+                    grain.setFillColor(sf::Color(255, (std::uint8_t)val, 100));
+                    window.draw(grain);
+                }
+            }
+        }
+        window.display();
+    }
+
+    return 0;
+}
+</script>
+            </code></pre>
+        </div>
+    </div>
+
+    <div class="project-item">
+        <button class="project-trigger">📈 Fourier Series <span class="tag">Math</span></button>
+        <div class="project-content">
+            <p class="desc">Күрделі толқындарды қарапайым шеңберлерге ыдырату.</p>
+            <pre><code class="language-cpp">
+<script type="text/plain">
+#include <SFML/Graphics.hpp>
+#include <vector>
+#include <complex>
+#include <cmath>
+#include <algorithm>
+#include <optional>
+
+// Тұрақты мәндер
+const float PI = 3.14159265359f;
+
+// Фурье коэффициенттеріне арналған құрылым
+struct FourierResult {
+    float freq;
+    float amplitude;
+    float phase;
+};
+
+// Дискретті Фурье түрлендіруі (DFT)
+std::vector<FourierResult> dft(const std::vector<std::complex<float>>& x) {
+    size_t N = x.size();
+    std::vector<FourierResult> X;
+    X.reserve(N);
+
+    for (size_t k = 0; k < N; k++) {
+        std::complex<float> sum(0.0f, 0.0f);
+        for (size_t n = 0; n < N; n++) {
+            float phi = (2 * PI * k * n) / N;
+            std::complex<float> c(std::cos(phi), -std::sin(phi));
+            sum += x[n] * c;
+        }
+        sum /= static_cast<float>(N);
+
+        float freq = static_cast<float>(k);
+        float amp = std::sqrt(sum.real() * sum.real() + sum.imag() * sum.imag());
+        float phase = std::atan2(sum.imag(), sum.real());
+        X.push_back({freq, amp, phase});
+    }
+    return X;
+}
+
+int main() {
+    // 1. Терезені баптау (SFML 3.0 стилі)
+    sf::RenderWindow window(sf::VideoMode({1200, 800}), "SFML 3.0 Fourier Series");
+    window.setFramerateLimit(60);
+
+    // 2. Қазақша қаріпті жүктеу (Жүйеңіздегі .ttf файлына жол көрсетіңіз)
+    sf::Font font;
+    if (!font.openFromFile("/Library/Fonts/Arial Unicode.ttf")) {
+        return -1; 
+    }
+
+    sf::Text dashboard(font);
+    dashboard.setCharacterSize(18);
+    dashboard.setFillColor(sf::Color::White);
+    dashboard.setPosition({20.0f, 20.0f});
+
+    // 3. Сызылатын фигура (мысалы, жүрек пішіні)
+    std::vector<std::complex<float>> signal;
+    for (float t = 0; t < 2 * PI; t += 0.1f) {
+        float x = 16 * std::pow(std::sin(t), 3);
+        float y = -(13 * std::cos(t) - 5 * std::cos(2 * t) - 2 * std::cos(3 * t) - std::cos(4 * t));
+        signal.push_back(std::complex<float>(x * 15.0f, y * 15.0f));
+    }
+
+    auto fourier = dft(signal);
+    
+    // Амплитуда бойынша сұрыптау
+    std::sort(fourier.begin(), fourier.end(), [](const FourierResult& a, const FourierResult& b) {
+        return a.amplitude > b.amplitude;
+    });
+
+    std::vector<sf::Vector2f> path;
+    float time = 0;
+
+    // Негізгі цикл
+    while (window.isOpen()) {
+        // SFML 3.0 Event Loop (std::optional қолдану)
+        while (std::optional<sf::Event> event = window.pollEvent()) {
+            if (event->is<sf::Event::Closed>())
+                window.close();
+        }
+
+        window.clear(sf::Color(30, 30, 30));
+
+        // Эпициклдерді есептеу
+        float x = 600.0f;
+        float y = 400.0f;
+        float last_phase = 0;
+
+        for (size_t i = 0; i < fourier.size(); i++) {
+            float prevX = x;
+            float prevY = y;
+            float freq = fourier[i].freq;
+            float radius = fourier[i].amplitude;
+            float phase = fourier[i].phase;
+            
+            x += radius * std::cos(freq * time + phase);
+            y += radius * std::sin(freq * time + phase);
+            last_phase = freq * time + phase;
+
+            // Шеңберлерді сызу
+            sf::CircleShape circle(radius);
+            circle.setFillColor(sf::Color::Transparent);
+            circle.setOutlineThickness(1.0f);
+            circle.setOutlineColor(sf::Color(100, 100, 100, 150));
+            circle.setOrigin({radius, radius});
+            circle.setPosition({prevX, prevY});
+            window.draw(circle);
+
+            // Радиус сызығы (Vertex ережесін сақтау)
+            sf::Vertex line[2];
+            line[0].position = {prevX, prevY};
+            line[0].color = sf::Color::Yellow;
+            line[1].position = {x, y};
+            line[1].color = sf::Color::Yellow;
+            window.draw(line, 2, sf::PrimitiveType::Lines);
+        }
+
+        // Соңғы нүктені сақтау
+        path.insert(path.begin(), {x, y});
+        if (path.size() > 500) path.pop_back();
+
+        // Фигураны сызу
+        if (path.size() > 1) {
+            std::vector<sf::Vertex> vertexPath;
+            for (const auto& p : path) {
+                sf::Vertex v; // Ереже бойынша айқын инициализация
+                v.position = p;
+                v.color = sf::Color::Cyan;
+                vertexPath.push_back(v);
+            }
+            window.draw(vertexPath.data(), vertexPath.size(), sf::PrimitiveType::LineStrip);
+        }
+
+        // Dashboard мәтіні (fromUtf8 қолдану)
+        std::string info = "Гармоника саны: " + std::to_string(fourier.size()) + "\n" +
+                           "Нүкте (Tip): x=" + std::to_string((int)x) + ", y=" + std::to_string((int)y) + "\n" +
+                           "Фаза: " + std::to_string(last_phase);
+        
+        sf::String kzString = sf::String::fromUtf8(info.begin(), info.end());
+        dashboard.setString(kzString);
+        window.draw(dashboard);
+
+        window.display();
+        time += (2 * PI) / signal.size();
+    }
+
+    return 0;
+}
+</script>
+            </code></pre>
+        </div>
+    </div>
+
+    <div class="project-item">
+        <button class="project-trigger">🌊 Lattice Boltzmann <span class="tag">Fluid Dynamics</span></button>
+        <div class="project-content">
+            <p class="desc">Сұйықтық пен газдың қозғалысын тор (grid) арқылы симуляциялау.</p>
+            <pre><code class="language-cpp">
+<script type="text/plain">
+#include <SFML/Graphics.hpp>
+#include <vector>
+#include <cmath>
+#include <string>
+#include <optional>
+
+// Кристалл атомын сипаттайтын құрылым
+struct Atom {
+    sf::Vector2f basePosition; // Тепе-теңдік күйі
+    sf::Vector2f currentPosition;
+    float offset = 0.0f;
+};
+
+int main() {
+    // 1. SFML 3.0 стиліндегі терезе инициализациясы
+    std::string titleStr = "Material Science: Lattice Stress Test (SFML 3.0)";
+    sf::RenderWindow window(
+        sf::VideoMode({1000, 800}), 
+        sf::String::fromUtf8(titleStr.begin(), titleStr.end())
+    );
+    window.setFramerateLimit(60);
+
+    // Қазақша мәтін үшін қажетті айнымалылар
+    std::string infoStr = "Гук заңы: F = -k * x | Деформация деңгейі";
+    sf::Font font;
+    // Ескерту: Жүйеде қазақ тілін қолдайтын шрифт болуы тиіс (мыс: Arial.ttf)
+    font.openFromFile("/System/Library/Fonts/Supplemental/Arial.ttf"); 
+
+    sf::Text uiText(font);
+    uiText.setCharacterSize(20);
+    uiText.setFillColor(sf::Color::White);
+    uiText.setString(sf::String::fromUtf8(infoStr.begin(), infoStr.end()));
+    uiText.setPosition(sf::Vector2f({20.f, 20.f}));
+
+    // 2. Кристалдық торды құру (Grid)
+    const int rows = 10;
+    const int cols = 12;
+    const float spacing = 60.0f;
+    const sf::Vector2f origin({150.f, 150.f});
+    std::vector<Atom> lattice;
+
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            Atom a;
+            a.basePosition = sf::Vector2f({origin.x + j * spacing, origin.y + i * spacing});
+            a.currentPosition = a.basePosition;
+            lattice.push_back(a);
+        }
+    }
+
+    sf::Clock clock;
+
+    // 3. Негізгі цикл
+    while (window.isOpen()) {
+        // SFML 3.0: std::optional арқылы event loop
+        while (const std::optional<sf::Event> event = window.pollEvent()) {
+            if (event->is<sf::Event::Closed>()) {
+                window.close();
+            }
+        }
+
+        float time = clock.getElapsedTime().asSeconds();
+        bool isPressed = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
+
+        window.clear(sf::Color({20, 20, 30})); // std::uint8_t негізіндегі түс
+
+        // 4. Физикалық симуляция және сурет салу
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; ++j) {
+                int idx = i * cols + j;
+                float distToMouse = 0.0f;
+
+                // Тінтуірмен әсер ету (Стресс-тест)
+                sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+                sf::Vector2f mPosF({static_cast<float>(mousePos.x), static_cast<float>(mousePos.y)});
+                float dx = lattice[idx].basePosition.x - mPosF.x;
+                float dy = lattice[idx].basePosition.y - mPosF.y;
+                distToMouse = std::sqrt(dx*dx + dy*dy);
+
+                float intensity = isPressed ? 15.0f : 2.0f;
+                float wave = std::sin(time * 5.0f + (i + j) * 0.5f) * intensity;
+
+                // Деформацияны есептеу
+                if (distToMouse < 150.0f && isPressed) {
+                    lattice[idx].currentPosition.x = lattice[idx].basePosition.x + (dx / distToMouse) * 20.0f;
+                    lattice[idx].currentPosition.y = lattice[idx].basePosition.y + (dy / distToMouse) * 20.0f;
+                } else {
+                    lattice[idx].currentPosition.y = lattice[idx].basePosition.y + wave;
+                }
+
+                // Атомды бейнелеу (CircleShape)
+                sf::CircleShape atomShape(6.0f);
+                atomShape.setOrigin(sf::Vector2f({3.0f, 3.0f}));
+                atomShape.setPosition(lattice[idx].currentPosition);
+                
+                // Кернеуге байланысты түсті өзгерту (Көктен Қызылға)
+                std::uint8_t red = static_cast<std::uint8_t>(std::min(255.f, (intensity * 15.f)));
+                atomShape.setFillColor(sf::Color({red, 100, 255}));
+                
+                window.draw(atomShape);
+
+                // Байланыстарды (Bonds) салу - sf::Vertex қолдану
+                if (j < cols - 1) { // Горизонталды байланыс
+                    sf::Vertex line[2];
+                    line[0].position = lattice[idx].currentPosition;
+                    line[1].position = lattice[idx + 1].basePosition; // Көрші атомға
+                    line[0].color = sf::Color({80, 80, 80});
+                    line[1].color = sf::Color({80, 80, 80});
+                    window.draw(line, 2, sf::PrimitiveType::Lines);
+                }
+            }
+        }
+
+        window.draw(uiText);
+        window.display();
+    }
+
+    return 0;
+}
+</script>
+            </code></pre>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Аккордеон функциясы
+    document.querySelectorAll('.project-trigger').forEach(trigger => {
+        trigger.addEventListener('click', () => {
+            const parent = trigger.parentNode;
+            parent.classList.toggle('active');
+        });
+    });
+
+       window.onload = function() {
+            document.querySelectorAll('script[type="text/plain"]').forEach(script => {
+                const codeBlock = script.parentElement;
+                // Get the raw text, escape it for HTML, and put it back
+                let rawText = script.textContent;
+                codeBlock.textContent = rawText.trim();
+            });
+            // 2. Tell Prism to highlight the fixed text
+            Prism.highlightAll();
+        };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+</body>
+</html>
