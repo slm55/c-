@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <title>SFML 3.0: Толық Графикалық Курс (Қазақша)</title>
+    <style>
+        /* Көшіруге қарсы шектеулер */
+        * {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.8;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            margin: 0;
+            padding: 0;
+        }
+        .wrapper {
+            max-width: 1100px;
+            margin: 0 auto;
+            background-color: #161b22;
+            padding: 50px;
+            box-shadow: 0 0 100px rgba(0,0,0,0.8);
+            border: 1px solid #30363d;
+        }
+        h1, h2, h3 { color: #58a6ff; border-left: 5px solid #58a6ff; padding-left: 15px; }
+        header { text-align: center; border-bottom: 1px solid #30363d; padding-bottom: 30px; margin-bottom: 30px; }
+        
+        pre {
+            background-color: #010409;
+            color: #d1d1d1;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #444;
+            overflow-x: auto;
+            font-family: "SF Mono", "Monaco", "Inconsolata", monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 20px 0;
+        }
+        .comment { color: #8b949e; }
+        .keyword { color: #ff7b72; }
+        .type { color: #79c0ff; }
+        .string { color: #a5d6ff; }
+        .include { color: #ff7b72; }
+
+        .explanation {
+            background-color: #1c2128;
+            padding: 25px;
+            border-left: 4px solid #f0883e;
+            margin: 30px 0;
+            border-radius: 0 10px 10px 0;
+        }
+        .important {
+            color: #ffa657;
+            font-weight: bold;
+        }
+        footer { text-align: center; padding: 60px; color: #484f58; font-size: 14px; }
+
+        .images {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 40px;
+            align-items: center;
+        }
+        .images img {
+            width: 45%;
+            height:min-content;
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+<div class="wrapper">
+    <header>
+        <h1>SFML 3.0: Графика және Қозғалыс</h1>
+        <p>Заманауи C++ стиліндегі графика, фигуралар және анимация негіздері</p>
+    </header>
+
+    <div class="images">
+        <img src="Screenshot 2026-03-04 at 12.54.20.png" alt="">
+        <img src="Screenshot 2026-03-04 at 12.54.49.png" alt="">
+    </div>
+
+    <h2>1. Координаталар жүйесі (Coordinates)</h2>
+    <p>SFML-де экранның жоғарғы сол жақ нүктесі <b>(0, 0)</b> болып табылады. Математикадан айырмашылығы — <b>Y осі төмен қарай өседі.</b></p>
+    
+    
+
+    <div class="explanation">
+        <ul>
+            <li><b>(0, 0):</b> Экранның сол жақ жоғарғы бұрышы.</li>
+            <li><b>X осі:</b> Оңға қарай жылжыған сайын өседі.</li>
+            <li><b>Y осі:</b> Төмен қарай жылжыған сайын өседі.</li>
+        </ul>
+        Егер сіз объектіні төмен түсіргіңіз келсе, Y мәнін арттыруыңыз керек.
+    </div>
+    
+
+    <h2>3. Төртбұрыш (RectangleShape)</h2>
+    <p>Бұл мысалда біз экранның ортасында орналасқан, жиектері бар көк тіктөртбұрыш жасаймыз.</p>
+    <pre>
+<span class="include">#include &lt;SFML/Graphics.hpp&gt;</span>
+
+<span class="keyword">int</span> main() {
+    <span class="type">sf::RenderWindow</span> window(<span class="type">sf::VideoMode</span>({800, 600}), <span class="string">"Rectangle 3.0 Example"</span>);
+
+    <span class="comment">// Төртбұрыш құру ({ені, биіктігі})</span>
+    <span class="type">sf::RectangleShape</span> rect({200.f, 100.f});
+    
+    <span class="comment">// Appearance (Сырт келбеті)</span>
+    rect.setFillColor(<span class="type">sf::Color</span>::Blue);
+    rect.setOutlineThickness(10.f);
+    rect.setOutlineColor(<span class="type">sf::Color</span>::White);
+    rect.setPosition({300.f, 250.f});
+
+    <span class="keyword">while</span> (window.isOpen()) {
+        <span class="keyword">while</span> (<span class="keyword">const</span> <span class="keyword">auto</span> event = window.pollEvent()) {
+            <span class="keyword">if</span> (event->is&lt;<span class="type">sf::Event</span>::Closed&gt;()) window.close();
+        }
+
+        window.clear();
+        window.draw(rect);
+        window.display();
+    }
+    <span class="keyword">return</span> 0;
+}
+    </pre>
+
+    <h2>4. Шеңберлер мен Көпбұрыштар (CircleShape)</h2>
+    <p><code>CircleShape</code> арқылы нүктелер санын өзгерту арқылы үшбұрыш немесе алтыбұрыш жасауға болады.</p>
+    <pre>
+<span class="include">#include &lt;SFML/Graphics.hpp&gt;</span>
+
+<span class="keyword">int</span> main() {
+    <span class="type">sf::RenderWindow</span> window(<span class="type">sf::VideoMode</span>({800, 600}), <span class="string">"Shapes 3.0 Test"</span>);
+
+    <span class="comment">// 1. Нағыз шеңбер (Радиусы 50)</span>
+    <span class="type">sf::CircleShape</span> circle(50.f);
+    circle.setFillColor(<span class="type">sf::Color</span>::Red);
+    circle.setPosition({100, 100});
+
+    <span class="comment">// 2. Үшбұрыш (3 нүктелі шеңбер)</span>
+    <span class="type">sf::CircleShape</span> triangle(60.f, 3);
+    triangle.setFillColor(<span class="type">sf::Color</span>::Green);
+    triangle.setPosition({300, 100});
+
+    <span class="comment">// 3. Алтыбұрыш (6 нүктелі шеңбер)</span>
+    <span class="type">sf::CircleShape</span> hex(60.f, 6);
+    hex.setFillColor(<span class="type">sf::Color</span>::Yellow);
+    hex.setPosition({500, 100});
+
+    <span class="keyword">while</span> (window.isOpen()) {
+        <span class="keyword">while</span> (<span class="keyword">const</span> <span class="keyword">auto</span> event = window.pollEvent()) {
+            <span class="keyword">if</span> (event->is&lt;<span class="type">sf::Event</span>::Closed&gt;()) window.close();
+        }
+
+        window.clear();
+        window.draw(circle);
+        window.draw(triangle);
+        window.draw(hex);
+        window.display();
+    }
+    <span class="keyword">return</span> 0;
+}
+    </pre>
+
+    <h2>5. Ерікті фигуралар (ConvexShape)</h2>
+    <p>Өз қалауыңызша нүктелер қою арқылы кез келген пішінді салу:</p>
+    
+    <pre>
+<span class="include">#include &lt;SFML/Graphics.hpp&gt;</span>
+
+<span class="keyword">int</span> main() {
+    <span class="type">sf::RenderWindow</span> window(<span class="type">sf::VideoMode</span>({800, 600}), <span class="string">"Custom Convex Shape"</span>);
+
+    <span class="type">sf::ConvexShape</span> star;
+    star.setPointCount(5); 
+    star.setPoint(0, {50, 0});
+    star.setPoint(1, {100, 40});
+    star.setPoint(2, {80, 100});
+    star.setPoint(3, {20, 100});
+    star.setPoint(4, {0, 40});
+    
+    star.setFillColor(<span class="type">sf::Color</span>::Magenta);
+    star.setPosition({350, 250});
+
+    <span class="keyword">while</span> (window.isOpen()) {
+        <span class="keyword">while</span> (<span class="keyword">const</span> <span class="keyword">auto</span> event = window.pollEvent()) {
+            <span class="keyword">if</span> (event->is&lt;<span class="type">sf::Event</span>::Closed&gt;()) window.close();
+        }
+
+        window.clear();
+        window.draw(star);
+        window.display();
+    }
+    <span class="keyword">return</span> 0;
+}
+    </pre>
+
+    <h2>6. Мәтін және Жүйелік Қаріптер (Text)</h2>
+    <p>Мәтін шығару үшін Apple немесе Windows жүйесіндегі қаріпті пайдаланудың толық жолы:</p>
+    <pre>
+<span class="include">#include &lt;SFML/Graphics.hpp&gt;</span>
+
+<span class="keyword">int</span> main() {
+    <span class="type">sf::RenderWindow</span> window(<span class="type">sf::VideoMode</span>({800, 600}), <span class="string">"System Font Text"</span>);
+
+    <span class="type">sf::Font</span> font;
+    <span class="keyword">if</span> (!font.openFromFile(<span class="string">"/System/Library/Fonts/Supplemental/Arial.ttf"</span>)) { <span class="keyword">return</span> -1; }
+
+    <span class="type">sf::Text</span> text(font, <span class="string">"Salem SFML 3.0!"</span>, 50);
+    text.setFillColor(<span class="type">sf::Color</span>::Cyan);
+    text.setStyle(<span class="type">sf::Text</span>::Bold);
+    text.setPosition({200, 250});
+
+    <span class="keyword">while</span> (window.isOpen()) {
+        <span class="keyword">while</span> (<span class="keyword">const</span> <span class="keyword">auto</span> event = window.pollEvent()) {
+            <span class="keyword">if</span> (event->is&lt;<span class="type">sf::Event</span>::Closed&gt;()) window.close();
+        }
+
+        window.clear();
+        window.draw(text);
+        window.display();
+    }
+    <span class="keyword">return</span> 0;
+}
+    </pre>
+
+    <h2>7. Қозғалыс (Movement) және Анимация</h2>
+    <p>Қозғалыс — әр кадр сайын позицияны өзгерту. SFML 3.0-де бұрыштарды <code>sf::degrees()</code> арқылы береміз.</p>
+    <pre>
+<span class="include">#include &lt;SFML/Graphics.hpp&gt;</span>
+
+<span class="keyword">int</span> main() {
+    <span class="type">sf::RenderWindow</span> window(<span class="type">sf::VideoMode</span>({800, 600}), <span class="string">"Movement & Animation"</span>);
+    window.setFramerateLimit(60);
+
+    <span class="type">sf::CircleShape</span> player(30.f);
+    player.setFillColor(<span class="type">sf::Color</span>::Green);
+    player.setPosition({400, 300});
+
+    <span class="keyword">while</span> (window.isOpen()) {
+        <span class="keyword">while</span> (<span class="keyword">const</span> <span class="keyword">auto</span> event = window.pollEvent()) {
+            <span class="keyword">if</span> (event->is&lt;<span class="type">sf::Event</span>::Closed&gt;()) window.close();
+        }
+
+        <span class="comment">// Қозғалыс логикасы</span>
+        <span class="keyword">float</span> speed = 5.f;
+        <span class="keyword">if</span> (<span class="type">sf::Keyboard</span>::isKeyPressed(<span class="type">sf::Keyboard</span>::Key::W)) player.move({0, -speed});
+        <span class="keyword">if</span> (<span class="type">sf::Keyboard</span>::isKeyPressed(<span class="type">sf::Keyboard</span>::Key::S)) player.move({0, speed});
+        <span class="keyword">if</span> (<span class="type">sf::Keyboard</span>::isKeyPressed(<span class="type">sf::Keyboard</span>::Key::A)) player.move({-speed, 0});
+        <span class="keyword">if</span> (<span class="type">sf::Keyboard</span>::isKeyPressed(<span class="type">sf::Keyboard</span>::Key::D)) player.move({speed, 0});
+
+        <span class="comment">// Анимация: Аздап айналдыру</span>
+        player.rotate(<span class="type">sf::degrees</span>(1.0f));
+
+        window.clear();
+        window.draw(player);
+        window.display();
+    }
+    <span class="keyword">return</span> 0;
+}
+    </pre>
+
+    <h2>8. Қорытынды МИНИ-ЖОБА</h2>
+    <p>Барлық білімді біріктіретін толық бағдарлама:</p>
+    <pre>
+<span class="include">#include &lt;SFML/Graphics.hpp&gt;</span>
+
+<span class="keyword">int</span> main() {
+    <span class="type">sf::RenderWindow</span> window(<span class="type">sf::VideoMode</span>({800, 600}), <span class="string">"Final Project 3.0"</span>);
+    window.setFramerateLimit(60);
+
+    <span class="comment">// Объект құру</span>
+    <span class="type">sf::CircleShape</span> star(50.f, 6);
+    star.setFillColor(<span class="type">sf::Color</span>::Yellow);
+    star.setOutlineThickness(5.f);
+    star.setOutlineColor(<span class="type">sf::Color</span>::Red);
+    star.setOrigin({50.f, 50.f});
+    star.setPosition({400.f, 300.f});
+
+    <span class="comment">// Мәтін</span>
+    <span class="type">sf::Font</span> font;
+    font.loadFromFile(<span class="string">"arial.ttf"</span>);
+    <span class="type">sf::Text</span> msg(font, <span class="string">"Arrows to move, Space to scale"</span>, 20);
+    msg.setPosition({10, 10});
+
+    <span class="keyword">while</span> (window.isOpen()) {
+        <span class="keyword">while</span> (<span class="keyword">const</span> <span class="keyword">auto</span> event = window.pollEvent()) {
+            <span class="keyword">if</span> (event->is&lt;<span class="type">sf::Event</span>::Closed&gt;()) window.close();
+            
+            <span class="comment">// Event арқылы пернені тексеру</span>
+            <span class="keyword">if</span> (<span class="keyword">const</span> <span class="keyword">auto</span>* key = event->getIf&lt;<span class="type">sf::Event</span>::KeyPressed&gt;()) {
+                <span class="keyword">if</span> (key->code == <span class="type">sf::Keyboard</span>::Key::Space) {
+                    star.setScale({1.5f, 1.5f});
+                }
+            }
+        }
+
+        <span class="comment">// Тұрақты айналу анимациясы</span>
+        star.rotate(<span class="type">sf::degrees</span>(2.0f));
+
+        window.clear(<span class="type">sf::Color</span>(20, 20, 20));
+        window.draw(star);
+        window.draw(msg);
+        window.display();
+    }
+    <span class="keyword">return</span> 0;
+}
+    </pre>
+
+</div>
+
+<footer>
+    <p>&copy; 2026 SFML Қазақша Оқулық. Барлық мазмұн қорғалған. Көшіруге болмайды.</p>
+</footer>
+
+<script>
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.onkeydown = e => {
+        if(e.ctrlKey && ['c', 'u', 's', 'i'].includes(e.key)) return false;
+    };
+</script>
+
+</body>
+</html>
