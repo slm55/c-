@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <title>SFML 3.0: 8-Наурыз Жобасы (Оқулық)</title>
+    <style>
+        /* Көшіруге қарсы шектеулер */
+        * {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.7;
+            background-color: #1a1a2e;
+            color: #e2e2e2;
+            margin: 0;
+            padding: 40px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #16213e;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            border: 2px solid #e94560;
+        }
+        h1, h2 { color: #e94560; text-align: center; }
+        .info-box {
+            background-color: rgba(233, 69, 96, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #e94560;
+        }
+        pre {
+            background-color: #0f3460;
+            padding: 30px;
+            border-radius: 12px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 15px;
+            line-height: 1.5;
+            color: #f8f8f2;
+            border: 1px solid #533483;
+        }
+        .code-comment { color: #6272a4; font-style: italic; }
+        .code-keyword { color: #ff79c6; font-weight: bold; }
+        .code-type { color: #8be9fd; }
+        .code-string { color: #f1fa8c; }
+        footer { text-align: center; margin-top: 50px; color: #533483; font-style: italic; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+<div class="container">
+    <header>
+        <h1>🌸 8-Наурыз: Құттықтау Жобасы 🌸</h1>
+        <p style="text-align:center;">Бағдарламалауды үйрену үшін кодты өз қолыңызбен теріп шығыңыз.</p>
+    </header>
+
+    <img src="Screenshot 2026-03-05 at 11.04.08.png" width="800px" alt="">
+
+    <h2>1-Бөлім: Математикалық Жүрек</h2>
+    <p>Бұл функция экранның төменгі бөлігінде орналасатын жүректің нүктелерін есептейді:</p>
+    <pre>
+<span class="code-keyword">void</span> setupHeart(<span class="code-type">sf::ConvexShape</span>& heart) {
+    heart.setPointCount(<span class="number">40</span>);
+    <span class="code-keyword">for</span> (<span class="code-type">int</span> i = <span class="number">0</span>; i < <span class="number">40</span>; ++i) {
+        <span class="code-type">float</span> angle = (<span class="number">2.f</span> * <span class="number">3.14159f</span> * i) / <span class="number">40.f</span>;
+        <span class="code-type">float</span> x = <span class="number">16.f</span> * std::pow(std::sin(angle), <span class="number">3</span>);
+        <span class="code-type">float</span> y = -(<span class="number">13.f</span> * std::cos(angle) - <span class="number">5.f</span> * std::cos(<span class="number">2</span> * angle) - <span class="number">2.f</span> * std::cos(<span class="number">3</span> * angle) - std::cos(<span class="number">4</span> * angle));
+        heart.setPoint(i, {x * <span class="number">8.f</span>, y * <span class="number">8.f</span>});
+    }
+    heart.setFillColor(<span class="code-type">sf::Color</span>(<span class="number">255</span>, <span class="number">30</span>, <span class="number">30</span>));
+    heart.setPosition({<span class="number">400.f</span>, <span class="number">480.f</span>});
+}</pre>
+
+    <h2>2-Бөлім: Негізгі Бағдарлама (main)</h2>
+    <p>Мұнда терезе құру, қаріпті жүктеу және анимация циклі орналасқан:</p>
+    <pre>
+<span class="code-keyword">int</span> main() {
+    <span class="code-type">sf::RenderWindow</span> window(<span class="code-type">sf::VideoMode</span>({<span class="number">800</span>, <span class="number">600</span>}), <span class="code-string">"For Mom"</span>);
+    window.setFramerateLimit(<span class="number">60</span>);
+    <span class="code-type">sf::Clock</span> clock;
+
+    <span class="code-type">sf::Font</span> font;
+    <span class="code-keyword">if</span> (!font.openFromFile(<span class="code-string">"/System/Library/Fonts/Palatino.ttc"</span>)) <span class="code-keyword">return</span> <span class="number">-1</span>;
+
+    <span class="code-type">sf::Text</span> title(font, <span class="code-string">"8 NAURYZ QUTTY BOLSYN!"</span>, <span class="number">45</span>);
+    title.setFillColor(<span class="code-type">sf::Color</span>::Magenta);
+    
+    <span class="code-comment">// Орталықтандыру логикасын осында жазыңыз...</span>
+
+    <span class="code-type">sf::ConvexShape</span> heart;
+    setupHeart(heart);
+
+    <span class="code-keyword">while</span> (window.isOpen()) {
+        <span class="code-keyword">while</span> (<span class="code-keyword">const auto</span> event = window.pollEvent()) {
+            <span class="code-keyword">if</span> (event->is&lt;<span class="code-type">sf::Event</span>::Closed&gt;()) window.close();
+        }
+
+        <span class="code-type">float</span> time = clock.getElapsedTime().asSeconds();
+        
+        <span class="code-comment">// Жүректің соғу анимациясы</span>
+        <span class="code-type">float</span> pulse = <span class="number">1.0f</span> + std::sin(time * <span class="number">3.f</span>) * <span class="number">0.15f</span>;
+        heart.setScale({pulse, pulse});
+
+        window.clear(<span class="code-type">sf::Color</span>(<span class="number">40</span>, <span class="number">5</span>, <span class="number">30</span>));
+        window.draw(title);
+        window.draw(heart);
+        window.display();
+    }
+    <span class="code-keyword">return</span> <span class="number">0</span>;
+}</pre>
+</div>
+
+</body>
+</html>
