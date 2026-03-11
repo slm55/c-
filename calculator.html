@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <title>SFML 3.0: Calculator Tutorial (Protected)</title>
+    <style>
+        /* Мәтінді белгілеуге тыйым салу */
+        * {
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            background-color: #0d1117;
+            color: #c9d1d9;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+            padding: 40px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #161b22;
+            padding: 30px;
+            border-radius: 12px;
+            border: 2px solid #58a6ff;
+            transition: filter 0.2s ease-in-out;
+        }
+
+        /* Скриншот кезінде немесе фокус жоғалғанда бұлыңғырлау */
+        .blurred {
+            filter: blur(35px);
+            opacity: 0.1;
+        }
+
+        pre {
+            background-color: #000;
+            padding: 25px;
+            border-radius: 8px;
+            line-height: 1.5;
+            border: 1px solid #30363d;
+            font-size: 13px;
+            color: #d1d1d1;
+            white-space: pre;
+            overflow-x: auto;
+        }
+
+        .keyword { color: #ff7b72; }
+        .type { color: #79c0ff; }
+        .string { color: #a5d6ff; }
+        .comment { color: #8b949e; }
+        .number { color: #d2a8ff; }
+
+        #warning {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff7b72;
+            font-size: 24px;
+            display: none;
+            z-index: 100;
+            text-align: center;
+            background: rgba(0,0,0,0.95);
+            padding: 30px;
+            border: 2px solid #ff7b72;
+            border-radius: 15px;
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+<div id="warning">⚠️ СКРИНШОТ ӘРЕКЕТІ АНЫҚТАЛДЫ! <br> Кодты өз бетіңізше теріңіз.</div>
+
+<div class="container" id="content">
+    <h1 style="color: #58a6ff; text-align: center;">📱 SFML 3.0 Calculator: Full Code</h1>
+    
+    <div style="background: #21262d; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <b>Нұсқаулық:</b> Тінтуірмен басқа терезеге ауысуға болады. Бірақ iMac-те ⌘ + Shift басылса, код жасырылады.
+    </div>
+
+    <pre>
+<span class="keyword">#include</span> <span class="string">&lt;SFML/Graphics.hpp&gt;</span>
+<span class="keyword">#include</span> <span class="string">&lt;string&gt;</span>
+<span class="keyword">#include</span> <span class="string">&lt;vector&gt;</span>
+<span class="keyword">#include</span> <span class="string">&lt;iostream&gt;</span>
+
+<span class="comment">// Түйме құрылымы: SFML 3.0-де sf::Text үшін шрифт алдын ала керек</span>
+<span class="keyword">struct</span> Button {
+    <span class="type">sf::RectangleShape</span> shape;
+    <span class="type">sf::Text</span> text;
+    std::string value;
+
+    Button(<span class="keyword">const</span> <span class="type">sf::Font</span>& font, <span class="keyword">const</span> std::string& label, <span class="type">sf::Vector2f</span> size, <span class="type">sf::Vector2f</span> pos)
+        : text(font, label) 
+    {
+        shape.setSize(size);
+        shape.setPosition(pos);
+        shape.setFillColor(<span class="type">sf::Color</span>(<span class="number">60</span>, <span class="number">60</span>, <span class="number">70</span>));
+
+        text.setCharacterSize(<span class="number">30</span>);
+        text.setFillColor(<span class="type">sf::Color</span>::White);
+
+        <span class="comment">// Мәтінді түйменің ортасына дәлдеу</span>
+        <span class="type">sf::FloatRect</span> textBounds = text.getLocalBounds();
+        text.setOrigin({textBounds.size.x / <span class="number">2.f</span>, textBounds.size.y / <span class="number">2.f</span>});
+        text.setPosition(pos + <span class="type">sf::Vector2f</span>(size.x / <span class="number">2.f</span>, size.y / <span class="number">2.f</span>));
+
+        value = label;
+    }
+};
+
+<span class="type">int</span> main() {
+    <span class="comment">// 1. Терезе құру</span>
+    <span class="type">sf::RenderWindow</span> window(<span class="type">sf::VideoMode</span>({<span class="number">400</span>, <span class="number">550</span>}), <span class="string">"SFML 3.0 Calculator"</span>);
+    window.setFramerateLimit(<span class="number">60</span>);
+
+    <span class="comment">// 2. Шрифт жүктеу</span>
+    <span class="type">sf::Font</span> font;
+    <span class="keyword">if</span> (!font.openFromFile(<span class="string">"/System/Library/Fonts/Supplemental/Arial.ttf"</span>)) {
+        std::cerr &lt;&lt; <span class="string">"Шрифт табылмады!"</span> &lt;&lt; std::endl;
+        <span class="keyword">return</span> -<span class="number">1</span>;
+    }
+
+    <span class="comment">// 3. Калькулятор айнымалылары</span>
+    std::string currentStr = <span class="string">""</span>;
+    <span class="type">double</span> firstNum = <span class="number">0</span>;
+    std::string operation = <span class="string">""</span>;
+
+    <span class="comment">// 4. Дисплей мәтіні</span>
+    <span class="type">sf::Text</span> display(font, <span class="string">"0"</span>, <span class="number">50</span>);
+    display.setPosition({<span class="number">20.f</span>, <span class="number">20.f</span>});
+    display.setFillColor(<span class="type">sf::Color</span>::White);
+
+    <span class="comment">// 5. Түймелерді жасау</span>
+    std::vector&lt;Button&gt; buttons;
+    std::vector&lt;std::string&gt; labels = {
+        <span class="string">"7"</span>, <span class="string">"8"</span>, <span class="string">"9"</span>, <span class="string">"/"</span>,
+        <span class="string">"4"</span>, <span class="string">"5"</span>, <span class="string">"6"</span>, <span class="string">"*"</span>,
+        <span class="string">"1"</span>, <span class="string">"2"</span>, <span class="string">"3"</span>, <span class="string">"-"</span>,
+        <span class="string">"C"</span>, <span class="string">"0"</span>, <span class="string">"="</span>, <span class="string">"+"</span>
+    };
+
+    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">16</span>; ++i) {
+        <span class="type">sf::Vector2f</span> size = {<span class="number">80.f</span>, <span class="number">80.f</span>};
+        <span class="type">sf::Vector2f</span> pos = {<span class="number">20.f</span> + (i % <span class="number">4</span>) * <span class="number">90.f</span>, <span class="number">120.f</span> + (i / <span class="number">4</span>) * <span class="number">90.f</span>};
+        buttons.emplace_back(font, labels[i], size, pos);
+    }
+
+    <span class="keyword">while</span> (window.isOpen()) {
+        <span class="keyword">while</span> (<span class="keyword">const auto</span> event = window.pollEvent()) {
+            <span class="keyword">if</span> (event-&gt;is&lt;<span class="type">sf::Event::Closed</span>&gt;()) window.close();
+
+            <span class="keyword">if</span> (<span class="keyword">const auto</span>* mouseEvent = event-&gt;getIf&lt;<span class="type">sf::Event::MouseButtonPressed</span>&gt;()) {
+                <span class="type">sf::Vector2f</span> mPos = { (<span class="type">float</span>)mouseEvent-&gt;position.x, (<span class="type">float</span>)mouseEvent-&gt;position.y };
+
+                <span class="keyword">for</span> (<span class="keyword">auto</span>& btn : buttons) {
+                    <span class="keyword">if</span> (btn.shape.getGlobalBounds().contains(mPos)) {
+                        std::string val = btn.value;
+
+                        <span class="keyword">if</span> (val == <span class="string">"C"</span>) {
+                            currentStr = <span class="string">""</span>;
+                            operation = <span class="string">""</span>;
+                            firstNum = <span class="number">0</span>;
+                        }
+                        <span class="keyword">else</span> <span class="keyword">if</span> (val == <span class="string">"+"</span> || val == <span class="string">"-"</span> || val == <span class="string">"*"</span> || val == <span class="string">"/"</span>) {
+                            <span class="keyword">if</span> (!currentStr.empty()) {
+                                firstNum = std::stod(currentStr);
+                                operation = val;
+                                currentStr = <span class="string">""</span>;
+                            }
+                        }
+                        <span class="keyword">else</span> <span class="keyword">if</span> (val == <span class="string">"="</span>) {
+                            <span class="keyword">if</span> (!currentStr.empty() && !operation.empty()) {
+                                <span class="type">double</span> secondNum = std::stod(currentStr);
+                                <span class="type">double</span> result = <span class="number">0</span>;
+
+                                <span class="keyword">if</span> (operation == <span class="string">"+"</span>) result = firstNum + secondNum;
+                                <span class="keyword">else</span> <span class="keyword">if</span> (operation == <span class="string">"-"</span>) result = firstNum - secondNum;
+                                <span class="keyword">else</span> <span class="keyword">if</span> (operation == <span class="string">"*"</span>) result = firstNum * secondNum;
+                                <span class="keyword">else</span> <span class="keyword">if</span> (operation == <span class="string">"/"</span> && secondNum != <span class="number">0</span>) result = firstNum / secondNum;
+
+                                currentStr = std::to_string(result);
+                                currentStr.erase(currentStr.find_last_not_of(<span class="string">'0'</span>) + <span class="number">1</span>, std::string::npos);
+                                <span class="keyword">if</span> (currentStr.back() == <span class="string">'.'</span>) currentStr.pop_back();
+
+                                operation = <span class="string">""</span>;
+                            }
+                        }
+                        <span class="keyword">else</span> {
+                            <span class="keyword">if</span> (currentStr.length() &lt; <span class="number">12</span>) currentStr += val;
+                        }
+                        display.setString(currentStr.empty() ? <span class="string">"0"</span> : currentStr);
+                    }
+                }
+            }
+        }
+
+        window.clear(<span class="type">sf::Color</span>(<span class="number">30</span>, <span class="number">30</span>, <span class="number">40</span>));
+        window.draw(display);
+        <span class="keyword">for</span> (<span class="keyword">const auto</span>& btn : buttons) {
+            window.draw(btn.shape);
+            window.draw(btn.text);
+        }
+        window.display();
+    }
+    <span class="keyword">return</span> <span class="number">0</span>;
+}
+    </pre>
+</div>
+
+<script>
+    const content = document.getElementById('content');
+    const warning = document.getElementById('warning');
+
+    // Скриншот комбинацияларын бақылау
+    window.addEventListener('keydown', e => {
+        if (e.metaKey || e.shiftKey || e.key === "PrintScreen") {
+            content.classList.add('blurred');
+            warning.style.display = 'block';
+        }
+    });
+
+    window.addEventListener('keyup', () => {
+        content.classList.remove('blurred');
+        warning.style.display = 'none';
+    });
+
+    // Терезе фокусын жоғалтқанда (басқа қолданбаға ауысқанда)
+</script>
+
+</body>
+</html>
