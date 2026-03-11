@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <title>SFML 3.0: Mini Paint Tutorial</title>
+    <style>
+        /* Тінтуірмен мәтінді белгілеуге тыйым салу */
+        * {
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            background-color: #0d1117;
+            color: #c9d1d9;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+            padding: 40px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+            background-color: #161b22;
+            padding: 30px;
+            border-radius: 12px;
+            border: 2px solid #58a6ff;
+            transition: filter 0.2s ease-in-out;
+        }
+
+        /* Скриншот әрекеті кезіндегі бұлыңғырлық */
+        .blurred {
+            filter: blur(35px);
+            opacity: 0.1;
+        }
+
+        pre {
+            background-color: #000;
+            padding: 25px;
+            border-radius: 8px;
+            line-height: 1.6;
+            border: 1px solid #30363d;
+            font-size: 14px;
+            white-space: pre;
+            color: #d1d1d1;
+        }
+
+        .keyword { color: #ff7b72; }
+        .type { color: #79c0ff; }
+        .string { color: #a5d6ff; }
+        .comment { color: #8b949e; }
+        .number { color: #d2a8ff; }
+
+        #warning {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff7b72;
+            font-size: 24px;
+            display: none;
+            z-index: 100;
+            text-align: center;
+            background: rgba(0,0,0,0.95);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #ff7b72;
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+<div id="warning">⚠️ СКРИНШОТҚА ТЫЙЫМ САЛЫНҒАН! <br> Кодты өз бетіңізше теріңіз.</div>
+
+<div class="container" id="content">
+    <h1 style="color: #58a6ff; text-align: center; font-family: sans-serif;">🎨 SFML 3.0 Mini Paint</h1>
+    
+    <div style="background: #21262d; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-family: sans-serif;">
+        <b>Нұсқаулық:</b> Кодты оқып, IDE-ге теріңіз.
+    </div>
+
+    <pre>
+<span class="keyword">#include</span> <span class="string">&lt;SFML/Graphics.hpp&gt;</span>
+<span class="keyword">#include</span> <span class="string">&lt;vector&gt;</span>
+
+<span class="type">int</span> main() {
+    <span class="type">sf::RenderWindow</span> window(<span class="type">sf::VideoMode</span>({<span class="number">800</span>, <span class="number">600</span>}), <span class="string">"SFML Mini Paint"</span>);
+    window.setFramerateLimit(<span class="number">120</span>); <span class="comment">// Сурет салу бірқалыпты болуы үшін FPS-ті көбейтеміз</span>
+
+    <span class="comment">// Барлық салынған "нүктелерді" сақтайтын жиым</span>
+    std::vector&lt;<span class="type">sf::CircleShape</span>&gt; brushStrokes;
+    
+    <span class="comment">// Қылқаламның баптаулары</span>
+    <span class="type">float</span> brushSize = <span class="number">5.f</span>;
+    <span class="type">sf::Color</span> brushColor = <span class="type">sf::Color</span>::Cyan;
+
+    <span class="keyword">while</span> (window.isOpen()) {
+        <span class="keyword">while</span> (<span class="keyword">const auto</span> event = window.pollEvent()) {
+            <span class="keyword">if</span> (event-&gt;is&lt;<span class="type">sf::Event::Closed</span>&gt;()) window.close();
+            
+            <span class="comment">// "C" пернесін басқанда экранды тазалау</span>
+            <span class="keyword">if</span> (<span class="keyword">const auto</span>* keyEvent = event-&gt;getIf&lt;<span class="type">sf::Event::KeyPressed</span>&gt;()) {
+                <span class="keyword">if</span> (keyEvent-&gt;code == <span class="type">sf::Keyboard::Key::C</span>) {
+                    brushStrokes.clear();
+                }
+            }
+        }
+
+        <span class="comment">// Нақты уақытта тышқанның сол жақ батырмасы басылып тұрғанын тексеру</span>
+        <span class="keyword">if</span> (<span class="type">sf::Mouse</span>::isButtonPressed(<span class="type">sf::Mouse::Button::Left</span>)) {
+            <span class="type">sf::Vector2i</span> mousePos = <span class="type">sf::Mouse</span>::getPosition(window);
+            
+            <span class="comment">// Жаңа нүкте жасау</span>
+            <span class="type">sf::CircleShape</span> dot(brushSize);
+            dot.setFillColor(brushColor);
+            <span class="comment">// Нүктенің ортасын тышқанның ұшына дәл келтіру</span>
+            dot.setOrigin({brushSize, brushSize});
+            dot.setPosition({<span class="keyword">static_cast</span>&lt;<span class="type">float</span>&gt;(mousePos.x), <span class="keyword">static_cast</span>&lt;<span class="type">float</span>&gt;(mousePos.y)});
+            
+            brushStrokes.push_back(dot);
+        }
+
+        <span class="comment">// --- СЫЗУ ---</span>
+        window.clear(<span class="type">sf::Color</span>::Black);
+        
+        <span class="keyword">for</span> (<span class="keyword">const auto</span>& dot : brushStrokes) {
+            window.draw(dot);
+        }
+        
+        window.display();
+    }
+    <span class="keyword">return</span> <span class="number">0</span>;
+}
+    </pre>
+</div>
+
+<script>
+    const content = document.getElementById('content');
+    const warning = document.getElementById('warning');
+
+    // iMac-те скриншот комбинацияларын (Cmd, Shift) бақылау
+    window.addEventListener('keydown', function(e) {
+        if (e.metaKey || e.shiftKey || e.key === "PrintScreen") {
+            content.classList.add('blurred');
+            warning.style.display = 'block';
+        }
+    });
+
+    window.addEventListener('keyup', function() {
+        content.classList.remove('blurred');
+        warning.style.display = 'none';
+    });
+
+    // Браузерден фокус кеткенде (мысалы, скриншот бағдарламасын қосқанда) жасыру
+    window.addEventListener('blur', () => {
+        content.classList.add('blurred');
+    });
+
+    window.addEventListener('focus', () => {
+        content.classList.remove('blurred');
+    });
+</script>
+
+</body>
+</html>
